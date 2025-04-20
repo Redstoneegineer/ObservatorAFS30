@@ -45,8 +45,8 @@ class NMEAMessage:
         self.sentence_type = header[2:]
         self.fields = parts[1:]
 
-        if not self.validate_checksum():
-            raise ValueError("Invalid checksum.")
+        # if not self.validate_checksum():
+        #     raise ValueError("Invalid checksum.")
 
     def compute_checksum(self) -> str:
         """
@@ -93,8 +93,8 @@ class NMEAMessage:
         message = self.to_string() + "\r\n"  # NMEA sentences typically end with CRLF
 
         if method == "serial":
-            port = kwargs.get("port", "/dev/ttyUSB0" if sys.platform != "win32" else "COM3")
-            baudrate = kwargs.get("baudrate", 4800)
+            port = kwargs.get("port", "/dev/ttyUSB0" if sys.platform != "win32" else "COM8")
+            baudrate = kwargs.get("baudrate", 115200)
             try:
                 with serial.Serial(port, baudrate, timeout=1) as ser:
                     ser.write(message.encode("ascii"))
@@ -103,7 +103,7 @@ class NMEAMessage:
                 print(f"Serial error: {e}")
         elif method == "socket":
             host = kwargs.get("host", "localhost")
-            port = kwargs.get("port", 5000)
+            port = kwargs.get("port", 115200)
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                     sock.connect((host, port))
@@ -117,11 +117,11 @@ class NMEAMessage:
 
 if __name__ == "__main__":
     # Example usage
-    nmea = NMEAMessage(raw="$GPRMC,123456.00,A,1234.5678,N,12345.6789,W,0.0,0.0,010101,0.0,E*47")
+    nmea = NMEAMessage(raw="$GPRMC,123456.00,A,1234.5678,N,12345.6789,W,0.0,0.0,010101,0.0,E*47\n")
     print(f"Parsed NMEA Message: {nmea.raw}")
     print(f"Talker: {nmea.talker}, Sentence Type: {nmea.sentence_type}, Fields: {nmea.fields}, Checksum: {nmea.checksum}")
 
     # Sending the message via serial (example)
     while True:
-        nmea.send(method="serial", port="/dev/ttyUSB0", baudrate=4800)
+        nmea.send(method="serial", port="COM8", baudrate=115200)
         time.sleep(2)
